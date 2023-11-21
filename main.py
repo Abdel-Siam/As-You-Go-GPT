@@ -102,7 +102,6 @@ with blocks as demo:
         saveChat.click(save_chat, chatHistory)
 
         addURLS.click(urls_to_strings_func, [url_input, status, backgroundInfo], [status, backgroundInfo])
-        # addFile.upload(uploadFile, addFileDrop, addFileDrop)
         
 # Uncomment the following line if you want to enable queueing for handling requests
 # demo.queue()
