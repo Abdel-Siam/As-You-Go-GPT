@@ -97,7 +97,7 @@ with blocks as demo:
         userInput.submit(respond, [userInput, systemMessage, backgroundInfo, chatHistory, apiKey, modelName, temperature, topP, maxTokens], [userInput, chatHistory])
         userInput.change(lambda x: f"<span>{count_tokens(x)}</span>", userInput, tokenCounterDefault, show_progress=False)
         newConvoBtn.click(clearhistory, chatHistory, chatHistory)
-        addFileDrop.upload(uploadFile, [addFileDrop], [status, backgroundInfo])
+        addFileDrop.upload(uploadFile, [addFileDrop, backgroundInfo], [status, backgroundInfo])
         addFileDrop.clear(clearFiles, [addFileDrop], [status, backgroundInfo])
         saveChat.click(save_chat, chatHistory)
 

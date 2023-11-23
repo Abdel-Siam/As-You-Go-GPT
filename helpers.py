@@ -264,9 +264,9 @@ def respond(message:str, systemMessage:str, background:list, chat_history:list, 
         return "", chat_history 
     
 # Function to upload multiple files
-def uploadFile(files):
+def uploadFile(files, backgroundInfo:list):
     # Implementation for uploading and handling file contents
-    fileContents = []
+
     doneMessage = '# Done Uploading'
     
     for file in files:
@@ -279,9 +279,9 @@ def uploadFile(files):
             doneMessage += "\n" + baseName + " contains: " +  str(numTokens) + " Tokens" 
             
         if contentMessage != None:
-            fileContents.append(contentMessage)
+            backgroundInfo.append(contentMessage)
     
-    return doneMessage, fileContents
+    return doneMessage, backgroundInfo
 
 # Function to clear files
 def clearFiles(files):
