@@ -1,3 +1,5 @@
+gradio
+beautifulsoup4
 tiktoken
 openai
 pymupdf
