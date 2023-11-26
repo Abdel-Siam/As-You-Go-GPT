@@ -313,7 +313,7 @@ def save_chat(chat_history):
         counter += 1
 
     # Write the lines to the file
-    with open("chat_history.txt", "w") as file:
+    with open(file_name, "w") as file:
         for chat in chat_history:
             file.write(f"User: {chat[0]}\n")
             file.write(f"Assistant: {chat[1]}\n\n")
