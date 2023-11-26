@@ -62,7 +62,9 @@ with blocks as demo:
                     status = gr.Markdown("")
                     addFileDrop = gr.Files(file_types=["image", "video", "audio", "text"])
                     url_input = gr.Textbox(lines=10, label='Input URLs', info='Enter one or more URLs separated by newline characters.')
-                    addURLS = gr.Button("Load URLs")
+                    with gr.Row():
+                        addURLS = gr.Button("Load URLs")
+                        clearBackground = gr.Button("Clear History")
                 
         with gr.Tab("Settings", elem_classes="Tabs"):
             
@@ -97,7 +99,10 @@ with blocks as demo:
         userInput.submit(respond, [userInput, systemMessage, backgroundInfo, chatHistory, apiKey, modelName, temperature, topP, maxTokens], [userInput, chatHistory])
         userInput.change(lambda x: f"<span>{count_tokens(x)}</span>", userInput, tokenCounterDefault, show_progress=False)
         newConvoBtn.click(clearhistory, chatHistory, chatHistory)
+        
+        clearBackground.click(clearFiles, [backgroundInfo], [status, backgroundInfo])
         addFileDrop.upload(uploadFile, [addFileDrop, backgroundInfo], [status, backgroundInfo])
+        
         addFileDrop.clear(clearFiles, [addFileDrop], [status, backgroundInfo])
         saveChat.click(save_chat, chatHistory)
 

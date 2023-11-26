@@ -78,7 +78,7 @@ def handle_file(filepath):
                 "type": "text",
                 "text": "The following are the contents of " + baseName + ": " + pdf_contents,
             }
-            
+
             return FileMessage, pdf_contents
         except FileNotFoundError:
             print(f"Error: PDF file '{filepath}' not found.")
