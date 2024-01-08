@@ -73,7 +73,7 @@ with blocks as demo:
             with gr.Row():
                 # Use API configurations from the .config file
                 apiKey = gr.Textbox(label="API key", value=api_key)
-                modelName = gr.Dropdown(label="Model: ", value=model_name, choices=["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-3.5-turbo-1106"])
+                modelName = gr.Dropdown(label="Model: ", value=model_name, choices=["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-3.5-turbo-1106", "gpt-4-32k-0613"])
             
             # Display model message settings
             gr.Markdown("# Model Settings: ")
@@ -95,8 +95,8 @@ with blocks as demo:
                 saveSettings = gr.Button("Save Settings")
         
         # Register functions for various user interactions
-        submitBtn.click(respond, [userInput, systemMessage, backgroundInfo, chatHistory, apiKey, modelName, temperature, topP, maxTokens], [userInput, chatHistory], trigger_mode='once')
-        userInput.submit(respond, [userInput, systemMessage, backgroundInfo, chatHistory, apiKey, modelName, temperature, topP, maxTokens], [userInput, chatHistory])
+        submitBtn.click(insertUserMessage, [userInput, chatHistory], [userInput, chatHistory], queue=False).then(respond, [systemMessage, backgroundInfo, chatHistory, apiKey, modelName, temperature, topP, maxTokens], chatHistory)
+        userInput.submit(insertUserMessage, [userInput, chatHistory], [userInput, chatHistory], queue=False).then(respond, [systemMessage, backgroundInfo, chatHistory, apiKey, modelName, temperature, topP, maxTokens], chatHistory)
         userInput.change(lambda x: f"<span>{count_tokens(x)}</span>", userInput, tokenCounterDefault, show_progress=False)
         newConvoBtn.click(clearhistory, chatHistory, chatHistory)
         
@@ -107,10 +107,9 @@ with blocks as demo:
         saveChat.click(save_chat, chatHistory)
 
         addURLS.click(urls_to_strings_func, [url_input, status, backgroundInfo], [status, backgroundInfo])
-        
-# Uncomment the following line if you want to enable queueing for handling requests
-# demo.queue()
 
 # Run the Gradio app
 if __name__ == "__main__":
-    demo.launch()
+    # Add the queuing mechanism to enable streaming
+    demo.queue()
+    demo.launch(server_name = "0.0.0.0")

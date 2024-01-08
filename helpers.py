@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import base64
 import os
 import fitz  # PyMuPDF
+from openai import OpenAI
 
 # Function to handle different types of files
 def handle_file(filepath):
@@ -10,7 +11,7 @@ def handle_file(filepath):
     baseName = os.path.basename(filepath)
     
     # Handling text files
-    if file_extension in ['java', 'py', 'txt', 'c']:
+    if file_extension in ['java', 'py', 'txt', 'c', 'md']:
         try:
             with open(filepath, 'r') as file:
                 file_contents = file.read()
@@ -88,12 +89,13 @@ def handle_file(filepath):
             return None
             
     else:
-        print(f"Unsupported file type: {file_extension}. Please provide a supported file type (.java, .py, .txt, .jpg, .png, .xml, .pdf).")
+        print(f"Unsupported file type: {file_extension}. Please provide a supported file type (.java, .py, .txt, .jpg, .png, .xml, .pdf, .md).")
         return None
 
 
 import requests 
-# Ideally, add topP: float and maxTokens: int parameters to the method signature.
+
+# DEPRECATED - changed with an open ai function call Ideally, add topP: float and maxTokens: int parameters to the method signature.
 def getResponse(apiKey: str, model: str, messages: list, temperature: int, topP: float, maxTokens: int):
     headers = {
         "Content-Type": "application/json",
@@ -105,11 +107,13 @@ def getResponse(apiKey: str, model: str, messages: list, temperature: int, topP:
         "max_tokens": maxTokens,
         "temperature": temperature,
         "top_p": topP,  # Add this line to include topP in the API request
+        "stream": True,
         # You might also want to handle 'stop sequences' or other parameters here
     }
     response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
     return response
-# Function to print response information from OpenAI API
+
+# DEPRECATED - removed with the get response function, Function to print response information from OpenAI API
 def printResponseInformation(response):
     # Assuming the response is in JSON format
     print("Prompt Tokens: ", response["usage"]["prompt_tokens"])
@@ -118,9 +122,7 @@ def printResponseInformation(response):
     print("")
     print(response["choices"][0]['message']['role'])
     print(response["choices"][0]['message']['content'])
-
-
-        
+         
 # Function to create messages for the OpenAI API request
 def createMessages(systemMessage:str, message:str, background:list, chat_history:list):
     # Implementation for creating messages based on systemMessage, user message, background, and chat history
@@ -238,30 +240,35 @@ def count_tokens(text):
 
 import json
 
+def insertUserMessage(message:str, chat_history:list):
+    print(chat_history)
+    return "", chat_history + [[message, None]]
+    
 # Function to get AI response from OpenAI API
-def respond(message:str, systemMessage:str, background:list, chat_history:list, apiKey:str, model:str, temperature:int, topP:int, maxTokens:int):
+def respond(systemMessage:str, background:list, chat_history:list, apiKey:str, model:str, temperature:int, topP:int, maxTokens:int):
+    client = OpenAI(api_key=apiKey)
+    
+    message = chat_history[-1][0]
+    # initalize it to a string
+    chat_history[-1][1] = ""
     # Implementation for API call and handling the response
     messages = createMessages(systemMessage, message, background, chat_history)
-    response = getResponse(apiKey=apiKey, model=model, messages=messages, temperature=temperature, topP=topP, maxTokens=maxTokens)
-    responseJson = response.json()
-    if response.status_code == 200:
-        
-        printResponseInformation(responseJson)
-        
-        # responseJson = {'id': 'chatcmpl-8MojM0uv33h6ZhIrIx4y2630WsPiY', 'object': 'chat.completion', 'created': 1700448916, 'model': 'gpt-4-1106-vision-preview', 'usage': {'prompt_tokens': 18, 'completion_tokens': 19, 'total_tokens': 37}, 'choices': [{'message': {'role': 'assistant', 'content': "Hello! It seems you've entered the number 1. How can I assist you today?"}, 'finish_details': {'type': 'stop', 'stop': '<|fim_suffix|>'}, 'index': 0}]}
-        assistantMessage = responseJson["choices"][0]['message']['content']
-        # extra information
-        assistantMessage += "\n\n\n" + "Prompt Tokens:" + str(responseJson["usage"]["prompt_tokens"])
-        assistantMessage += "\n" + 'Response Tokens:'+ str(responseJson["usage"]["completion_tokens"])
-        assistantMessage += "\n" + "Total Tokens:" + str(responseJson["usage"]["total_tokens"])
-        # assistantMessage = "test"
-        chat_history.append((message, assistantMessage))
-        return "", chat_history 
-
-    else:
-        chat_history.append((message, f"Error: {responseJson['error']['message']}"))
-        print(responseJson)
-        return "", chat_history 
+    
+    completion = client.chat.completions.create(
+    model=model,
+    temperature=temperature,
+    top_p=topP,
+    max_tokens=maxTokens,
+    messages=messages,
+    stream=True
+    )
+     
+    for chunk in completion:
+        # print(chunk.choices[0].delta)
+        if chunk.choices[0].delta.content != None:
+            chat_history[-1][1] += str(chunk.choices[0].delta.content)
+            yield chat_history    
+    
     
 # Function to upload multiple files
 def uploadFile(files, backgroundInfo:list):
